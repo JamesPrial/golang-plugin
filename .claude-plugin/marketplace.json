@@ -1,0 +1,16 @@
+{
+  "name": "golang-plugin",
+  "owner": {
+    "name": "James"
+  },
+  "metadata": {
+    "description": "Go development plugins for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "golang-workflow",
+      "source": "./golang-workflow",
+      "description": "Go development workflow with specialized agents, idiomatic patterns, and automated code quality hooks"
+    }
+  ]
+}

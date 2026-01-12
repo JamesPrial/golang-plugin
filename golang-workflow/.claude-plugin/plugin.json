@@ -1,0 +1,9 @@
+{
+  "name": "golang-workflow",
+  "version": "1.0.0",
+  "description": "Go development workflow with specialized agents, idiomatic patterns, and automated code quality hooks",
+  "author": {
+    "name": "James"
+  },
+  "keywords": ["golang", "go", "workflow", "linting", "testing", "concurrency"]
+}
