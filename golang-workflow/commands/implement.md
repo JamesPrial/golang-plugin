@@ -209,19 +209,40 @@ prompt: |
   - Error handling approach
   - Implementation stages (if sequential dependencies exist)
 
-  CRITICAL: Include Test Specifications for Test Writer:
-  - Expected behaviors for each public function
-  - Error conditions and expected error types
-  - Edge cases (nil, empty, boundary values)
-  - Interface contracts that tests should verify
+  Output TWO separate files:
 
-  Output: Write design to ~/.claude/golang-workflow/architecture.md
+  1. ~/.claude/golang-workflow/architecture-impl.md
+     (implementation design: patterns, structure, code examples)
+
+  2. ~/.claude/golang-workflow/test-specs.md
+     (ONLY test specifications - NO code examples, NO implementation details)
+
+  Format test-specs.md using this template:
+
+  ## Test Specification: [Component]
+
+  ### Function: [Name]
+  **Signature:** `func Name(params) (returns, error)`
+
+  | Scenario | Input | Expected Output |
+  |----------|-------|-----------------|
+  | happy path | valid input | success result |
+  | nil input | nil | error containing "X is required" |
+  | empty | "" | error containing "cannot be empty" |
+
+  **Error Conditions:**
+  - When [condition], returns error containing "[message]"
+
+  **Edge Cases:**
+  - [boundary condition] → [expected behavior]
+
+  PROHIBITION: Do NOT include code examples, algorithms, or internal structures in test-specs.md.
 ```
 
 ### Step 3: Synthesize Wave 1
 
 After agents complete:
-1. Read the output files (explorer-findings.md, architecture.md)
+1. Read the output files (explorer-findings.md, architecture-impl.md, test-specs.md)
 2. Combine into implementation brief for Wave 2
 3. **Identify implementation stages**:
    - Single stage: All work can be done in parallel
@@ -239,11 +260,34 @@ From architect output, identified:
 Updating todos for 3 stages...
 ```
 
+### Step 3.5: Pre-Wave-2 Validation (REQUIRED)
+
+Before proceeding to Wave 2, verify file separation:
+
+1. Confirm `~/.claude/golang-workflow/architecture-impl.md` exists
+2. Confirm `~/.claude/golang-workflow/test-specs.md` exists
+3. Verify test-specs.md contains NO code blocks (``` markers)
+4. Verify test-specs.md follows the specification template
+
+**If files are not properly separated, return to Wave 1 and re-run Architect with corrected prompt.**
+
 ### Step 4: Wave 2 - Implementation Cycle
 
 Wave 2 is an ITERATIVE cycle. For each stage identified in Wave 1, execute Wave 2a followed by Wave 2b.
 
 #### Wave 2a: Parallel Creation
+
+##### Parallel Launch Checklist (MANDATORY)
+
+Before sending Wave 2a, verify ALL conditions:
+
+- [ ] Sending SINGLE message with BOTH Task tool calls
+- [ ] Implementer prompt references `architecture-impl.md`
+- [ ] Test Writer prompt references ONLY `test-specs.md`
+- [ ] Test Writer prompt contains ZERO code blocks (```)
+- [ ] Test Writer prompt contains ZERO file paths to *.go implementation files
+
+**STOP CONDITION:** If ANY checkbox fails, do not proceed. Fix the prompts first.
 
 Launch BOTH agents in a SINGLE message with multiple Task calls:
 
@@ -274,27 +318,44 @@ subagent_type: Go Test Writer
 prompt: |
   Write tests for [STAGE DESCRIPTION]: {TASK}
 
-  Specifications from architect:
-  {PASTE INTERFACE DEFINITIONS AND BEHAVIOR SPECS}
+  Test specifications (from test-specs.md):
+  {PASTE CONTENTS OF test-specs.md FOR THIS STAGE}
 
-  Expected behaviors:
-  {PASTE REQUIREMENTS AND EXPECTED OUTCOMES}
+  ISOLATION RULES:
+  - You are testing against a SPECIFICATION, not an implementation
+  - You have NOT seen the implementation code
+  - Write tests that verify the CONTRACT, not internal behavior
+  - If a test requires knowledge of internals, it's testing the wrong thing
 
-  Error conditions to test:
-  {PASTE ERROR TYPES AND WHEN THEY OCCUR}
-
-  DO NOT read implementation code. Test against the SPECIFICATION.
-
-  Required coverage:
-  - Unit tests for all exported functions
-  - Table-driven tests for multiple scenarios
-  - Error path tests for all documented errors
-  - Edge case tests (nil, empty, boundary)
+  Required test coverage:
+  - Unit tests for all functions in specification
+  - Table-driven tests for documented scenarios
+  - Error path tests for all documented error conditions
+  - Edge case tests for documented edge cases
 
   Output: List all test files created with absolute paths
 ```
 
-**CRITICAL**: Test Writer receives ONLY specifications, NOT implementation code. This ensures tests verify intended behavior, not implementation details.
+## Test Writer Isolation (ENFORCED)
+
+### PROHIBITED - Test Writer MUST NOT receive:
+- Code examples or snippets from architect
+- Implementation file contents (*.go excluding *_test.go)
+- Internal data structures or algorithms
+- Any content referencing HOW something is implemented
+
+### PERMITTED - Test Writer MAY ONLY receive:
+- Function/method signatures (name, params, return types)
+- Expected behaviors (given X, expect Y)
+- Error conditions (when X, error contains "Y")
+- Interface contracts (methods that must exist)
+- Public API documentation
+
+### Verification Question
+Before launching Test Writer, ask yourself:
+**"If I gave this prompt to someone who has NEVER seen the implementation, could they write valid tests?"**
+
+If NO → Remove implementation details from prompt.
 
 #### Wave 2b: Quality Gate (BLOCKING)
 
@@ -470,6 +531,10 @@ Present to user:
 ❌ "Let me write the tests myself alongside the implementation..." → Test Writer handles ALL tests
 ❌ "REQUEST_CHANGES but I'll fix it in the next stage..." → Fix BEFORE proceeding
 ❌ "Skipping Wave 2b, the code is simple..." → EVERY stage needs quality gate
+❌ "Let me include some code examples for the Test Writer..." → NEVER include code in Test Writer prompt
+❌ "Test Writer needs to see the implementation to write good tests..." → Tests verify SPECS, not implementation
+❌ "I'll launch Test Writer after Implementer finishes..." → MUST be parallel in SAME message
+❌ "The architect put everything in one file, I'll extract what I need..." → Architect MUST output separate files
 
 ## Context Budget Reminder
 
