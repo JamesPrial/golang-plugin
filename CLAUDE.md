@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Claude Code plugin marketplace containing Go development plugins. The main plugin is `golang-workflow`, which provides specialized agents, idiomatic Go patterns, and automated code quality hooks.
+This is a Claude Code plugin marketplace containing Go development plugins. The main plugin is `golang-workflow` (v1.1.1), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks.
 
 **Always proactively use your claude-code-plugins skill when working on or with plugins in this repository.**
 
@@ -14,13 +14,11 @@ This is a Claude Code plugin marketplace containing Go development plugins. The 
 .claude-plugin/marketplace.json    # Marketplace manifest listing available plugins
 golang-workflow/                   # Main Go development workflow plugin
   .claude-plugin/plugin.json       # Plugin manifest
-  agents/                          # Subagent definitions (explorer, architect, implementer, reviewer, optimizer)
+  agents/                          # Subagent definitions
   commands/                        # Slash commands (/implement)
-  hooks/                           # Automated code quality hooks (go fmt, go vet, golangci-lint)
+  hooks/                           # Automated code quality hooks
   skills/golang/                   # Go knowledge base organized by topic
-.claude/skills/                    # Plugin development skills
-  claude-code-plugins/             # Plugin system documentation
-  claude-code-slash-commands/      # Slash command authoring guide
+.claude/skills/                    # Plugin development documentation
 ```
 
 ## Plugin Architecture
@@ -37,28 +35,35 @@ Subagent definitions in markdown with YAML frontmatter specifying:
 |-------|-------|---------|
 | explorer | sonnet | Code investigation, architecture mapping |
 | architect | opus | Interface design, package structure |
-| implementer | sonnet | Writes idiomatic Go code |
+| implementer | sonnet | Writes idiomatic Go code (NOT tests) |
+| test-writer | opus | Writes tests from specifications only |
 | reviewer | opus | Code correctness, quality assurance |
 | optimizer | sonnet | Performance analysis, benchmarks |
 
+**Critical:** Implementer and Test Writer have strict separation. Test Writer receives only specifications (no implementation code) to ensure unbiased test coverage.
+
 ### Commands (golang-workflow/commands/)
 
-Slash commands as markdown files. The `/implement` command orchestrates a 4-wave workflow:
-1. Wave 1: Parallel exploration (explorer + architect agents)
-2. Wave 2: Implementation (implementer agent)
-3. Wave 3: Parallel review (reviewer + optimizer agents)
-4. Wave 4: Verification
+The `/implement` command orchestrates a 4-wave workflow:
+1. **Wave 1:** Parallel exploration (explorer + architect) → produces `explorer-findings.md`, `architecture-impl.md`, `test-specs.md`
+2. **Wave 2:** Iterative implementation with quality gates
+   - 2a: Parallel creation (implementer + test-writer with enforced isolation)
+   - 2b: Blocking quality gate (reviewer must APPROVE before proceeding)
+3. **Wave 3:** Parallel final review (reviewer + optimizer)
+4. **Wave 4:** Verification (only if Wave 3 returns APPROVE)
+
+Quality gate requirements: `go test -v`, `go test -race`, `go vet`, coverage > 70%
 
 ### Hooks (golang-workflow/hooks/)
 
 Automated via hooks.json:
-- `PostToolUse:Write` → runs go-fmt.sh
-- `PostToolUse:Edit` → runs go-vet.sh
-- `PreToolUse:Bash` → runs go-precommit.sh (for git commits)
+- `PostToolUse:Write` → runs go-fmt.sh (formats .go files)
+- `PostToolUse:Edit` → runs go-vet.sh (static analysis)
+- `PreToolUse:Bash` → runs go-precommit.sh (golangci-lint before git commits)
 
-### Skills (golang-workflow/skills/)
+### Skills (golang-workflow/skills/golang/)
 
-Hierarchical knowledge base with SKILL.md files covering:
+Hierarchical knowledge base with router files that guide to subtopics:
 - Concurrency (channels, context, goroutines, sync)
 - Error handling (wrapping, sentinel errors, checking)
 - Interfaces (design, embedding, pollution avoidance)
@@ -85,3 +90,4 @@ Hierarchical knowledge base with SKILL.md files covering:
 - Located in `hooks/scripts/`
 - Referenced via `${CLAUDE_PLUGIN_ROOT}` variable
 - Must be executable shell scripts
+- Receive tool_input as JSON via stdin
