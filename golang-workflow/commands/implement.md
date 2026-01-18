@@ -40,8 +40,9 @@ Your context window is precious. Every file you read, every grep you run, every 
 ┌─────────────────────────────────────────────────────────┐
 │ WAVE 1: Parallel Exploration (NEVER SKIP)               │
 │   ├── Explorer Agent: Find files, patterns, deps        │
-│   └── Architect Agent: Design approach, interfaces,     │
-│                        test specifications              │
+│   ├── Architect Agent: Design approach, interfaces,     │
+│   │                    test specifications              │
+│   └── Researcher Agent: Web search for docs, practices  │
 ├─────────────────────────────────────────────────────────┤
 │ WAVE 2: Implementation Cycle (ITERATIVE)                │
 │                                                         │
@@ -163,7 +164,7 @@ WAVE 2 LOOP:
 ### Step 1: Initialize (TodoWrite)
 ```
 Create todos:
-1. [pending] Wave 1: Launch explorer + architect agents
+1. [pending] Wave 1: Launch explorer + architect + researcher agents
 2. [pending] Wave 1: Synthesize findings, identify stages
 3. [pending] Wave 2a-Stage1: Launch implementer + test-writer agents
 4. [pending] Wave 2b-Stage1: Quality gate review (BLOCKING)
@@ -179,7 +180,7 @@ Create todos:
 
 ### Step 2: Wave 1 - Exploration (PARALLEL)
 
-Launch BOTH agents in a SINGLE message with multiple Task calls:
+Launch ALL THREE agents in a SINGLE message with multiple Task calls:
 
 **Explorer Agent:**
 ```
@@ -239,11 +240,31 @@ prompt: |
   PROHIBITION: Do NOT include code examples, algorithms, or internal structures in test-specs.md.
 ```
 
+**Researcher Agent:**
+```
+subagent_type: Go Researcher
+prompt: |
+  Research for Go implementation: {TASK}
+
+  Search for:
+  - Official Go documentation for relevant packages
+  - Best practices from go.dev, effective go
+  - Library documentation for any third-party packages
+  - Common pitfalls and known issues
+  - Error handling patterns for this domain
+  - pkg.go.dev documentation for discovered imports
+
+  Use WebSearch to find resources, WebFetch to retrieve content.
+  Use Read/Glob to correlate with codebase imports (check go.mod).
+
+  Output: Write findings to ~/.claude/golang-workflow/research-findings.md
+```
+
 ### Step 3: Synthesize Wave 1
 
 After agents complete:
-1. Read the output files (explorer-findings.md, architecture-impl.md, test-specs.md)
-2. Combine into implementation brief for Wave 2
+1. Read the output files (explorer-findings.md, architecture-impl.md, test-specs.md, research-findings.md)
+2. Combine into implementation brief for Wave 2 (include relevant external best practices)
 3. **Identify implementation stages**:
    - Single stage: All work can be done in parallel
    - Multiple stages: Work has dependencies (e.g., types before functions)
@@ -266,10 +287,11 @@ Before proceeding to Wave 2, verify file separation:
 
 1. Confirm `~/.claude/golang-workflow/architecture-impl.md` exists
 2. Confirm `~/.claude/golang-workflow/test-specs.md` exists
-3. Verify test-specs.md contains NO code blocks (``` markers)
-4. Verify test-specs.md follows the specification template
+3. Confirm `~/.claude/golang-workflow/research-findings.md` exists
+4. Verify test-specs.md contains NO code blocks (``` markers)
+5. Verify test-specs.md follows the specification template
 
-**If files are not properly separated, return to Wave 1 and re-run Architect with corrected prompt.**
+**If files are not properly separated, return to Wave 1 and re-run the relevant agent with corrected prompt.**
 
 ### Step 4: Wave 2 - Implementation Cycle
 
@@ -303,10 +325,14 @@ prompt: |
   Design from architect:
   {PASTE RELEVANT DESIGN SECTIONS}
 
+  External research (from researcher):
+  {PASTE RELEVANT FINDINGS FROM research-findings.md - documentation links, best practices}
+
   Requirements:
   - Follow existing codebase patterns
   - Add godoc comments for all exported items
   - Handle all error paths
+  - Apply best practices from research findings
   - DO NOT write tests (*_test.go) - Test Writer handles this
 
   Output: List all files created/modified with absolute paths
@@ -535,6 +561,7 @@ Present to user:
 ❌ "Test Writer needs to see the implementation to write good tests..." → Tests verify SPECS, not implementation
 ❌ "I'll launch Test Writer after Implementer finishes..." → MUST be parallel in SAME message
 ❌ "The architect put everything in one file, I'll extract what I need..." → Architect MUST output separate files
+❌ "I'll search for Go docs myself..." → Spawn researcher
 
 ## Context Budget Reminder
 
@@ -544,5 +571,6 @@ Present to user:
 | Grep codebase | ~1000+ tokens | Explorer agent: ~100 token findings |
 | Write implementation | ~500-2000 tokens | Implementer agent: ~50 token confirmation |
 | Review all changes | ~3000+ tokens | Reviewer agent: ~300 token verdict |
+| Web search docs | Network latency | Researcher agent: ~150 token summary |
 
 **Your context is finite. Agents are cheap. Spawn liberally.**

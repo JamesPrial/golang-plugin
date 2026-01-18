@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Claude Code plugin marketplace containing Go development plugins. The main plugin is `golang-workflow` (v1.1.1), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks.
+This is a Claude Code plugin marketplace containing Go development plugins. The main plugin is `golang-workflow` (v1.2.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks.
 
 **Always proactively use your claude-code-plugins skill when working on or with plugins in this repository.**
 
@@ -35,6 +35,7 @@ Subagent definitions in markdown with YAML frontmatter specifying:
 |-------|-------|---------|
 | explorer | sonnet | Code investigation, architecture mapping |
 | architect | opus | Interface design, package structure |
+| researcher | sonnet | Web search for Go docs, best practices |
 | implementer | sonnet | Writes idiomatic Go code (NOT tests) |
 | test-writer | opus | Writes tests from specifications only |
 | reviewer | opus | Code correctness, quality assurance |
@@ -45,7 +46,7 @@ Subagent definitions in markdown with YAML frontmatter specifying:
 ### Commands (golang-workflow/commands/)
 
 The `/implement` command orchestrates a 4-wave workflow:
-1. **Wave 1:** Parallel exploration (explorer + architect) → produces `explorer-findings.md`, `architecture-impl.md`, `test-specs.md`
+1. **Wave 1:** Parallel exploration (explorer + architect + researcher) → produces `explorer-findings.md`, `architecture-impl.md`, `test-specs.md`, `research-findings.md`
 2. **Wave 2:** Iterative implementation with quality gates
    - 2a: Parallel creation (implementer + test-writer with enforced isolation)
    - 2b: Blocking quality gate (reviewer must APPROVE before proceeding)
