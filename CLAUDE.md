@@ -4,26 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Claude Code plugin marketplace containing Go development plugins. The main plugin is `golang-workflow` (v1.2.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks.
+This is the `golang-workflow` Claude Code plugin (v1.2.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks for Go development.
 
 **Always proactively use your claude-code-plugins skill when working on or with plugins in this repository.**
 
 ## Repository Structure
 
 ```
-.claude-plugin/marketplace.json    # Marketplace manifest listing available plugins
-golang-workflow/                   # Main Go development workflow plugin
-  .claude-plugin/plugin.json       # Plugin manifest
-  agents/                          # Subagent definitions
-  commands/                        # Slash commands (/implement)
-  hooks/                           # Automated code quality hooks
-  skills/golang/                   # Go knowledge base organized by topic
+.claude-plugin/plugin.json         # Plugin manifest
+agents/                            # Subagent definitions
+commands/                          # Slash commands (/implement)
+hooks/                             # Automated code quality hooks
+skills/golang/                     # Go knowledge base organized by topic
 .claude/skills/                    # Plugin development documentation
 ```
 
 ## Plugin Architecture
 
-### Agents (golang-workflow/agents/)
+### Agents (agents/)
 
 Subagent definitions in markdown with YAML frontmatter specifying:
 - `name`, `description` - Agent identity
@@ -43,7 +41,7 @@ Subagent definitions in markdown with YAML frontmatter specifying:
 
 **Critical:** Implementer and Test Writer have strict separation. Test Writer receives only specifications (no implementation code) to ensure unbiased test coverage.
 
-### Commands (golang-workflow/commands/)
+### Commands (commands/)
 
 The `/implement` command orchestrates a 4-wave workflow:
 1. **Wave 1:** Parallel exploration (explorer + architect + researcher) → produces `explorer-findings.md`, `architecture-impl.md`, `test-specs.md`, `research-findings.md`
@@ -55,14 +53,14 @@ The `/implement` command orchestrates a 4-wave workflow:
 
 Quality gate requirements: `go test -v`, `go test -race`, `go vet`, coverage > 70%
 
-### Hooks (golang-workflow/hooks/)
+### Hooks (hooks/)
 
 Automated via hooks.json:
 - `PostToolUse:Write` → runs go-fmt.sh (formats .go files)
 - `PostToolUse:Edit` → runs go-vet.sh (static analysis)
 - `PreToolUse:Bash` → runs go-precommit.sh (golangci-lint before git commits)
 
-### Skills (golang-workflow/skills/golang/)
+### Skills (skills/golang/)
 
 Hierarchical knowledge base with router files that guide to subtopics:
 - Concurrency (channels, context, goroutines, sync)
@@ -74,9 +72,8 @@ Hierarchical knowledge base with router files that guide to subtopics:
 
 ## Key Conventions
 
-### Plugin Manifests
-- Marketplace: `.claude-plugin/marketplace.json` with `plugins` array
-- Plugin: `<plugin-dir>/.claude-plugin/plugin.json` with name, version, description
+### Plugin Manifest
+- Located at `.claude-plugin/plugin.json` with name, version, description
 
 ### Agent Definitions
 - Frontmatter: `name`, `description`, `model`, `tools`, `skills`, `color`
