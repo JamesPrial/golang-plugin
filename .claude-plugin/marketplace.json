@@ -1,7 +1,7 @@
 {
   "name": "golang-plugin",
   "owner": {
-    "name": "James"
+    "name": "James Prial"
   },
   "metadata": {
     "description": "Go development plugins for Claude Code"

@@ -3,7 +3,7 @@
   "version": "1.2.0",
   "description": "Go development workflow with specialized agents, idiomatic patterns, and automated code quality hooks",
   "author": {
-    "name": "James"
+    "name": "James Prial"
   },
   "keywords": ["golang", "go", "workflow", "linting", "testing", "concurrency"]
 }
