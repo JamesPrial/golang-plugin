@@ -10,7 +10,8 @@
     {
       "name": "golang-workflow",
       "source": "./golang-workflow",
-      "description": "Go development workflow with specialized agents, idiomatic patterns, and automated code quality hooks"
+      "description": "Go development workflow with specialized agents, idiomatic patterns, and automated code quality hooks",
+      "version": "1.2.0"
     }
   ]
 }
