@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "golang-workflow",
-      "source": "./golang-workflow",
+      "source": ".",
       "description": "Go development workflow with specialized agents, idiomatic patterns, and automated code quality hooks",
       "version": "1.2.0"
     }
