@@ -8,15 +8,6 @@ argument-hint: <feature-or-task-description>
 
 You are a **coordinator only**. Your job is to spawn agents and synthesize results.
 
-## WHY THIS MATTERS
-
-Your context window is precious. Every file you read, every grep you run, every line of code you analyze consumes tokens that could cause you to forget earlier context. By delegating to subagents:
-
-- **Subagents get fresh context** for their specific task
-- **You stay lean** - only receiving summaries
-- **Parallelism** - multiple agents work simultaneously
-- **Isolation** - one agent's context doesn't pollute another's
-
 ## ABSOLUTE RULES
 
 ### You MUST:
@@ -29,7 +20,7 @@ Your context window is precious. Every file you read, every grep you run, every 
 ### You MUST NOT:
 - Read source files directly (spawn explorer agent)
 - Write/edit any files (spawn implementer agent)
-- Run bash commands (spawn verification agent)
+- Run bash commands (spawn verifier agent)
 - Search codebase (spawn explorer agent)
 
 **SELF-CHECK**: Before EVERY action, ask: "Am I about to use a tool that isn't Task or TodoWrite?" If yes, STOP and spawn an agent instead.
@@ -79,76 +70,20 @@ Your context window is precious. Every file you read, every grep you run, every 
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Quality Gate Protocol (CRITICAL)
+## Quality Gate Protocol
 
-Quality gates are MANDATORY checkpoints that BLOCK progression. Wave 2b runs **Test Runner** and **Reviewer** agents in PARALLEL.
+Quality gates are MANDATORY checkpoints that BLOCK progression. See `skills/orchestration/quality-gate/` for detailed protocols.
 
-### Enforcement Rules
+**Quick Reference:**
+- Test Runner + Reviewer run in PARALLEL
+- Test Runner: ALL test execution (`go test`, race detection, coverage, linting)
+- Reviewer: Code review ONLY (no test execution)
+- Both must succeed for progression
+- Maximum 3 retry cycles before NEEDS_DISCUSSION
 
-- [ ] Every Wave 2 stage ends with a quality gate (Wave 2b)
-- [ ] Test Runner agent handles ALL test execution (not Reviewer)
-- [ ] Reviewer agent handles code review ONLY (no test execution)
-- [ ] Test failures from Test Runner BLOCK progression (no exceptions)
-- [ ] REQUEST_CHANGES from Reviewer requires returning to Wave 2a
-- [ ] Wave 3 CANNOT begin until ALL Wave 2 stages have combined APPROVE
-- [ ] Maximum 3 retry cycles per stage before escalating to NEEDS_DISCUSSION
-
-### Test Execution Requirements (MANDATORY)
-
-The **Test Runner** agent in Wave 2b MUST execute ALL of these commands:
-
-```bash
-go test -v ./...        # Functional tests - ALL MUST PASS
-go test -race ./...     # Race detection - NO RACES ALLOWED
-go vet ./...            # Static analysis - NO WARNINGS
-go test -cover ./...    # Coverage metrics - CHECK THRESHOLD
-golangci-lint run || staticcheck ./...  # Linting
-```
-
-**Test Runner passes (TESTS_PASS) ONLY when:**
-- All test commands exit with status 0
-- No race conditions detected
-- No vet warnings
-- Coverage meets threshold (>70% for new code)
-
-### Combined Verdict Handling
-
-Wave 2b runs Test Runner and Reviewer in PARALLEL. Both must succeed:
-
-| Test Runner | Reviewer | Combined Action | Blocking? |
-|-------------|----------|-----------------|-----------|
-| TESTS_PASS | APPROVE | Proceed to next stage or wave | No (unblocks) |
-| TESTS_FAIL | APPROVE | REQUEST_CHANGES (fix failing tests) | YES |
-| TESTS_PASS | REQUEST_CHANGES | REQUEST_CHANGES (fix code issues) | YES |
-| TESTS_FAIL | REQUEST_CHANGES | REQUEST_CHANGES (fix both) | YES |
-| * | NEEDS_DISCUSSION | NEEDS_DISCUSSION (escalate to user) | YES |
-
-### Complexity-Based Reviewer Scaling
-
-During Wave 1 synthesis, assess implementation complexity:
-
-```
-COMPLEXITY ASSESSMENT:
-- LOW: Single file, <100 lines changed → 1 reviewer
-- MEDIUM: 2-5 files, <500 lines → 1 reviewer
-- HIGH: >5 files OR >500 lines OR architectural changes → 2 reviewers
-```
-
-**HIGH COMPLEXITY Wave 2b (3 agents parallel):**
-- Test Runner Agent: Execute all tests
-- Reviewer Agent 1: Focus on correctness + error handling
-- Reviewer Agent 2: Focus on patterns + design + documentation
-
-**HIGH COMPLEXITY Wave 3 (4 agents parallel):**
-- Test Runner Agent: Full test suite
-- Reviewer Agent 1: Integration review
-- Reviewer Agent 2: API/interface review
-- Optimizer Agent: Performance analysis
-
-**Multi-Reviewer Verdict Aggregation:**
-- ALL reviewers must return `APPROVE` for progression
-- ANY `REQUEST_CHANGES` → combined fix list, return to Wave 2a
-- ANY `NEEDS_DISCUSSION` → escalate to user
+**Complexity Scaling:** See `skills/orchestration/quality-gate/complexity.md`
+- LOW/MEDIUM: 1 reviewer
+- HIGH (>5 files OR >500 lines): 2 reviewers
 
 ## Sequential Implementation Protocol
 
@@ -158,40 +93,15 @@ Stages are sequential when:
 - Type definitions must exist before functions using them
 - Interfaces must be defined before implementations
 - Lower-level utilities must exist before higher-level consumers
-- Database schema must exist before data access code
 
 ### Stage Identification (Wave 1)
 
-During Wave 1 synthesis, explicitly identify:
-1. Number of stages required
-2. Dependencies between stages
-3. Order of execution
-
-Example output format:
+During Wave 1 synthesis, explicitly identify stages and dependencies:
 ```
 STAGES IDENTIFIED:
 Stage 1: Define interfaces and types (no dependencies)
 Stage 2: Implement core functions (depends on Stage 1 types)
 Stage 3: Implement HTTP handlers (depends on Stage 2 functions)
-```
-
-### Execution Protocol
-
-```
-WAVE 2 LOOP:
-│
-├─▶ Stage N: Wave 2a (Parallel)
-│   ├── Implementer: Write code for Stage N
-│   └── Test Writer: Write tests for Stage N specs
-│
-├─▶ Stage N: Wave 2b (Quality Gate)
-│   ├── Reviewer: Run tests, render verdict
-│   │
-│   └─▶ APPROVE?
-│       ├── YES: Proceed to Stage N+1 or Wave 3
-│       └── NO: Return to Stage N Wave 2a
-│
-└─▶ [Next Stage or Exit to Wave 3]
 ```
 
 **BLOCKING**: Stage N+1 CANNOT start until Stage N has APPROVE verdict.
@@ -213,9 +123,7 @@ Create todos:
 10. [pending] Report final summary
 ```
 
-**Dynamic Todo Updates**: After Wave 1 synthesis identifies the number of stages AND complexity level, update the todo list to reflect:
-- Actual stages (e.g., Stage1, Stage2, Stage3)
-- Complexity level (adds Reviewer 2 for HIGH COMPLEXITY)
+**Dynamic Updates**: After Wave 1 identifies stages and complexity, update todos accordingly.
 
 ### Step 2: Wave 1 - Exploration (PARALLEL)
 
@@ -303,52 +211,28 @@ prompt: |
 
 After agents complete:
 1. Read the output files (explorer-findings.md, architecture-impl.md, test-specs.md, research-findings.md)
-2. Combine into implementation brief for Wave 2 (include relevant external best practices)
-3. **Identify implementation stages**:
-   - Single stage: All work can be done in parallel
-   - Multiple stages: Work has dependencies (e.g., types before functions)
-4. Extract test specifications for Test Writer agent
+2. Combine into implementation brief for Wave 2
+3. **Identify implementation stages** (single or multiple)
+4. **Assess complexity** for reviewer scaling
 5. Update TodoWrite with actual stage count
-
-**Stage Identification Example:**
-```
-From architect output, identified:
-- Stage 1: Define Order and Item types, OrderProcessor interface
-- Stage 2: Implement ProcessOrder, ValidateOrder functions
-- Stage 3: Implement HTTP handlers using Stage 2 functions
-
-Updating todos for 3 stages...
-```
 
 ### Step 3.5: Pre-Wave-2 Validation (REQUIRED)
 
-Before proceeding to Wave 2, verify file separation:
-
+Verify file separation before proceeding:
 1. Confirm `~/.claude/golang-workflow/architecture-impl.md` exists
 2. Confirm `~/.claude/golang-workflow/test-specs.md` exists
 3. Confirm `~/.claude/golang-workflow/research-findings.md` exists
 4. Verify test-specs.md contains NO code blocks (``` markers)
-5. Verify test-specs.md follows the specification template
 
-**If files are not properly separated, return to Wave 1 and re-run the relevant agent with corrected prompt.**
+**If files are not properly separated, return to Wave 1 and re-run the relevant agent.**
 
 ### Step 4: Wave 2 - Implementation Cycle
 
-Wave 2 is an ITERATIVE cycle. For each stage identified in Wave 1, execute Wave 2a followed by Wave 2b.
+Wave 2 is ITERATIVE. For each stage identified in Wave 1, execute Wave 2a followed by Wave 2b.
 
 #### Wave 2a: Parallel Creation
 
-##### Parallel Launch Checklist (MANDATORY)
-
-Before sending Wave 2a, verify ALL conditions:
-
-- [ ] Sending SINGLE message with BOTH Task tool calls
-- [ ] Implementer prompt references `architecture-impl.md`
-- [ ] Test Writer prompt references ONLY `test-specs.md`
-- [ ] Test Writer prompt contains ZERO code blocks (```)
-- [ ] Test Writer prompt contains ZERO file paths to *.go implementation files
-
-**STOP CONDITION:** If ANY checkbox fails, do not proceed. Fix the prompts first.
+**Test Writer Isolation is ENFORCED.** See `skills/orchestration/agent-protocols/test-writer-isolation.md` for details.
 
 Launch BOTH agents in a SINGLE message with multiple Task calls:
 
@@ -401,30 +285,9 @@ prompt: |
   Output: List all test files created with absolute paths
 ```
 
-## Test Writer Isolation (ENFORCED)
-
-### PROHIBITED - Test Writer MUST NOT receive:
-- Code examples or snippets from architect
-- Implementation file contents (*.go excluding *_test.go)
-- Internal data structures or algorithms
-- Any content referencing HOW something is implemented
-
-### PERMITTED - Test Writer MAY ONLY receive:
-- Function/method signatures (name, params, return types)
-- Expected behaviors (given X, expect Y)
-- Error conditions (when X, error contains "Y")
-- Interface contracts (methods that must exist)
-- Public API documentation
-
-### Verification Question
-Before launching Test Writer, ask yourself:
-**"If I gave this prompt to someone who has NEVER seen the implementation, could they write valid tests?"**
-
-If NO → Remove implementation details from prompt.
-
 #### Wave 2b: Quality Gate (PARALLEL - BLOCKING)
 
-**This step is MANDATORY and BLOCKING. No progression until BOTH Test Runner returns TESTS_PASS AND Reviewer returns APPROVE.**
+**This step is MANDATORY and BLOCKING.** See `skills/orchestration/quality-gate/protocol.md` for verdict handling.
 
 Launch BOTH agents in a SINGLE message (or 3 agents for HIGH COMPLEXITY):
 
@@ -515,49 +378,30 @@ prompt: |
 
 #### Processing Wave 2b Verdict
 
-Read BOTH test-results and review output files, then combine verdicts:
+Read test-results and review output files, then apply combined verdict logic from `skills/orchestration/quality-gate/protocol.md`.
 
-**Combined Verdict Logic:**
-1. If Test Runner returns `TESTS_FAIL` → Combined = REQUEST_CHANGES (include test failures)
-2. If ANY Reviewer returns `REQUEST_CHANGES` → Combined = REQUEST_CHANGES (include code issues)
-3. If ANY Reviewer returns `NEEDS_DISCUSSION` → Combined = NEEDS_DISCUSSION
-4. If Test Runner returns `TESTS_PASS` AND ALL Reviewers return `APPROVE` → Combined = APPROVE
-
-**Action based on combined verdict:**
-- **APPROVE** → Mark stage complete, proceed to next stage or Wave 3
-- **REQUEST_CHANGES** → Return to Wave 2a with combined fix list (test failures + code issues)
-- **NEEDS_DISCUSSION** → Use AskUserQuestion, then retry Wave 2b
-
-**BLOCKING ENFORCEMENT**: You MUST NOT proceed to the next stage or Wave 3 until the current stage receives combined APPROVE. This is non-negotiable.
+**BLOCKING ENFORCEMENT**: You MUST NOT proceed to the next stage or Wave 3 until the current stage receives combined APPROVE.
 
 #### Multiple Stages Loop
 
 ```
 For stage in [Stage 1, Stage 2, ..., Stage N]:
-    Mark "Wave 2a-StageX" as in_progress
     Execute Wave 2a (Implementer + Test Writer parallel)
-    Mark "Wave 2a-StageX" as completed
-
-    Mark "Wave 2b-StageX" as in_progress
     Execute Wave 2b (Test Runner + Reviewer(s) parallel)
-    Combine verdicts from all agents
 
     IF combined_verdict == APPROVE:
-        Mark "Wave 2b-StageX" as completed
         Continue to next stage
     ELSE IF combined_verdict == REQUEST_CHANGES:
-        Keep "Wave 2b-StageX" as in_progress
-        Return to Wave 2a with combined fix list (test failures + code issues)
+        Return to Wave 2a with combined fix list
     ELSE:  # NEEDS_DISCUSSION
-        AskUserQuestion with concerns
-        Retry Wave 2b after clarification
+        AskUserQuestion with concerns, then retry
 
 Only after ALL stages have combined APPROVE verdicts, proceed to Wave 3.
 ```
 
 ### Step 5: Wave 3 - Final Review (PARALLEL)
 
-Wave 3 is the FINAL quality check before verification. All Wave 2 stages must have combined APPROVE verdicts before reaching this point.
+All Wave 2 stages must have combined APPROVE verdicts before reaching this point.
 
 Launch ALL agents in a SINGLE message (3 agents standard, 4 agents for HIGH COMPLEXITY):
 
@@ -660,18 +504,7 @@ prompt: |
 
 ### Step 6: Process Final Verdict (BLOCKING)
 
-Read ALL output files (test-results-final.md, review-final.md, review2-final.md if HIGH COMPLEXITY, optimization.md) and combine verdicts:
-
-**Combined Verdict Logic:**
-1. If Test Runner returns `TESTS_FAIL` → Combined = REQUEST_CHANGES
-2. If ANY Reviewer returns `REQUEST_CHANGES` → Combined = REQUEST_CHANGES
-3. If ANY Reviewer returns `NEEDS_DISCUSSION` → Combined = NEEDS_DISCUSSION
-4. If Test Runner returns `TESTS_PASS` AND ALL Reviewers return `APPROVE` → Combined = APPROVE
-
-**Action based on combined verdict:**
-- **APPROVE** → Proceed to Wave 4
-- **REQUEST_CHANGES** → Return to relevant Wave 2 stage with combined fixes, then repeat Wave 3
-- **NEEDS_DISCUSSION** → Use AskUserQuestion to clarify, then retry Wave 3
+Read ALL output files and apply combined verdict logic from `skills/orchestration/quality-gate/protocol.md`.
 
 **This verdict is BLOCKING**. You MUST NOT proceed to Wave 4 until the combined final verdict is APPROVE.
 
@@ -703,36 +536,9 @@ Present to user:
 - Verification results
 - Next steps if any
 
-## Anti-Patterns to Avoid
+## Reference Documentation
 
-❌ "Let me quickly check this file..." → Spawn explorer
-❌ "I'll just run the build..." → Spawn verifier
-❌ "Let me make this small edit..." → Spawn implementer
-❌ "Skipping Wave 1, the task is simple..." → NEVER skip waves
-❌ "I'll review the code myself..." → Spawn reviewer
-❌ "Tests failed but the code looks fine, let's proceed..." → NEVER skip quality gates
-❌ "Let me write the tests myself alongside the implementation..." → Test Writer handles ALL tests
-❌ "REQUEST_CHANGES but I'll fix it in the next stage..." → Fix BEFORE proceeding
-❌ "Skipping Wave 2b, the code is simple..." → EVERY stage needs quality gate
-❌ "Let me include some code examples for the Test Writer..." → NEVER include code in Test Writer prompt
-❌ "Test Writer needs to see the implementation to write good tests..." → Tests verify SPECS, not implementation
-❌ "I'll launch Test Writer after Implementer finishes..." → MUST be parallel in SAME message
-❌ "The architect put everything in one file, I'll extract what I need..." → Architect MUST output separate files
-❌ "I'll search for Go docs myself..." → Spawn researcher
-❌ "The reviewer will run the tests..." → Test Runner handles ALL test execution
-❌ "I'll have the reviewer run go test..." → Reviewer does CODE REVIEW only, Test Runner runs tests
-❌ "I'll launch test-runner after reviewer finishes..." → MUST be parallel in SAME message
-❌ "This is a small change, no need for multiple reviewers..." → HIGH COMPLEXITY always gets 2 reviewers
-
-## Context Budget Reminder
-
-| Action | Context Cost | Alternative |
-|--------|-------------|-------------|
-| Read 500-line file | ~2000 tokens | Explorer agent: ~200 token summary |
-| Grep codebase | ~1000+ tokens | Explorer agent: ~100 token findings |
-| Write implementation | ~500-2000 tokens | Implementer agent: ~50 token confirmation |
-| Run test suite | ~1000+ tokens | Test Runner agent: ~200 token verdict |
-| Review all changes | ~3000+ tokens | Reviewer agent: ~300 token verdict |
-| Web search docs | Network latency | Researcher agent: ~150 token summary |
-
-**Your context is finite. Agents are cheap. Spawn liberally.**
+For detailed protocols, see:
+- `skills/orchestration/quality-gate/` - Verdict handling, test requirements, complexity scaling
+- `skills/orchestration/agent-protocols/test-writer-isolation.md` - Test Writer isolation rules
+- `skills/orchestration/anti-patterns.md` - Common mistakes and context budget guidance

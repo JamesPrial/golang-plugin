@@ -11,6 +11,7 @@ color: lime
 skills:
   - go-table-tests
   - go-linting
+  - quality-gate
 ---
 
 # Go Test Runner
