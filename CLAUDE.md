@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the `golang-workflow` Claude Code plugin (v1.2.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks for Go development.
+This is the `golang-workflow` Claude Code plugin (v1.3.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks for Go development.
 
 **Always proactively use your claude-code-plugins skill when working on or with plugins in this repository.**
 
@@ -36,10 +36,11 @@ Subagent definitions in markdown with YAML frontmatter specifying:
 | researcher | sonnet | Web search for Go docs, best practices |
 | implementer | sonnet | Writes idiomatic Go code (NOT tests) |
 | test-writer | opus | Writes tests from specifications only |
-| reviewer | opus | Code correctness, quality assurance |
+| test-runner | sonnet | Executes tests, race detection, coverage, linting |
+| reviewer | opus | Code review only (NO test execution) |
 | optimizer | sonnet | Performance analysis, benchmarks |
 
-**Critical:** Implementer and Test Writer have strict separation. Test Writer receives only specifications (no implementation code) to ensure unbiased test coverage.
+**Critical:** Implementer and Test Writer have strict separation. Test Writer receives only specifications (no implementation code) to ensure unbiased test coverage. Test Runner handles all test execution; Reviewer focuses on code quality review only.
 
 ### Commands (commands/)
 
@@ -47,11 +48,11 @@ The `/implement` command orchestrates a 4-wave workflow:
 1. **Wave 1:** Parallel exploration (explorer + architect + researcher) → produces `explorer-findings.md`, `architecture-impl.md`, `test-specs.md`, `research-findings.md`
 2. **Wave 2:** Iterative implementation with quality gates
    - 2a: Parallel creation (implementer + test-writer with enforced isolation)
-   - 2b: Blocking quality gate (reviewer must APPROVE before proceeding)
-3. **Wave 3:** Parallel final review (reviewer + optimizer)
-4. **Wave 4:** Verification (only if Wave 3 returns APPROVE)
+   - 2b: Parallel quality gate (test-runner + reviewer(s) - both must succeed)
+3. **Wave 3:** Parallel final review (test-runner + reviewer(s) + optimizer)
+4. **Wave 4:** Verification (only if Wave 3 returns combined APPROVE)
 
-Quality gate requirements: `go test -v`, `go test -race`, `go vet`, coverage > 70%
+Quality gate requirements: test-runner executes `go test -v`, `go test -race`, `go vet`, coverage > 70%, linting. High-complexity implementations (>5 files OR >500 lines) use 2 reviewers.
 
 ### Hooks (hooks/)
 

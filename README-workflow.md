@@ -10,20 +10,24 @@ A Claude Code plugin providing specialized agents, idiomatic Go patterns, and au
 |-------|---------|-------|
 | **explorer** | Code investigation, architecture mapping, dependency analysis | sonnet |
 | **architect** | Interface design, package structure, concurrency patterns | opus |
+| **researcher** | Web search for Go docs, best practices | sonnet |
 | **implementer** | Writes idiomatic Go code (NOT tests) | sonnet |
 | **test-writer** | Writes tests from specifications (isolated from implementation) | opus |
-| **reviewer** | Code correctness, test coverage, quality assurance | opus |
+| **test-runner** | Executes tests, race detection, coverage, linting | sonnet |
+| **reviewer** | Code review only (NO test execution) | opus |
 | **optimizer** | Performance analysis, memory profiling, benchmarks | sonnet |
 
 ### Commands
 
 - `/implement` - Orchestrates the full Go development workflow:
-  1. **Wave 1:** Parallel exploration (explorer + architect)
+  1. **Wave 1:** Parallel exploration (explorer + architect + researcher)
   2. **Wave 2:** Iterative implementation with quality gates
      - 2a: Parallel creation (implementer + test-writer with enforced isolation)
-     - 2b: Blocking quality gate (reviewer must APPROVE)
-  3. **Wave 3:** Parallel final review (reviewer + optimizer)
-  4. **Wave 4:** Verification (only if Wave 3 approves)
+     - 2b: Parallel quality gate (test-runner + reviewer(s) - both must succeed)
+  3. **Wave 3:** Parallel final review (test-runner + reviewer(s) + optimizer)
+  4. **Wave 4:** Verification (only if Wave 3 combined APPROVE)
+
+High-complexity implementations (>5 files OR >500 lines) automatically use 2 reviewers with different focus areas.
 
 ### Skills
 
