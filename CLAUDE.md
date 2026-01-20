@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the `golang-workflow` Claude Code plugin (v1.3.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks for Go development.
+This is the `golang-workflow` Claude Code plugin (v1.4.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks for Go development.
 
 **Always proactively use your claude-code-plugins skill when working on or with plugins in this repository.**
 

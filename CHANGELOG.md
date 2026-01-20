@@ -5,6 +5,24 @@ All notable changes to the golang-workflow plugin will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-01-20
+
+### Changed
+- Refactored `/implement` command from 739 to 544 lines (26% reduction)
+- Extracted orchestration protocols to `skills/orchestration/` for reusability
+- Quality gate protocols now in dedicated skill files
+- Test writer isolation rules moved to `agent-protocols/test-writer-isolation.md`
+- Anti-patterns and context budget guidance extracted to standalone skill
+
+### Added
+- New `skills/orchestration/` skill hierarchy with routers
+- `quality-gate/protocol.md` - verdict tables and combined logic
+- `quality-gate/test-requirements.md` - mandatory test commands
+- `quality-gate/complexity.md` - reviewer scaling rules
+- `agent-protocols/test-writer-isolation.md` - isolation enforcement
+- `anti-patterns.md` - common mistakes and context budget
+- Added `quality-gate` skill reference to test-runner agent
+
 ## [1.3.0] - 2026-01-20
 
 ### Added
