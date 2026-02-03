@@ -62,7 +62,7 @@ You are a Go research specialist who finds external documentation, best practice
 
 ## Output Format
 
-Write findings to ~/.claude/golang-workflow/research-findings.md:
+Write findings to ./.claude/golang-workflow/research-findings.md:
 
 ```markdown
 # Research Findings: {TASK}

@@ -142,7 +142,7 @@ prompt: |
   - Test file locations
   - Potential conflicts or gotchas
 
-  Output: Write findings to ~/.claude/golang-workflow/explorer-findings.md
+  Output: Write findings to ./.claude/golang-workflow/explorer-findings.md
 ```
 
 **Architect Agent:**
@@ -159,10 +159,10 @@ prompt: |
 
   Output TWO separate files:
 
-  1. ~/.claude/golang-workflow/architecture-impl.md
+  1. ./.claude/golang-workflow/architecture-impl.md
      (implementation design: patterns, structure, code examples)
 
-  2. ~/.claude/golang-workflow/test-specs.md
+  2. ./.claude/golang-workflow/test-specs.md
      (ONLY test specifications - NO code examples, NO implementation details)
 
   Format test-specs.md using this template:
@@ -204,7 +204,7 @@ prompt: |
   Use WebSearch to find resources, WebFetch to retrieve content.
   Use Read/Glob to correlate with codebase imports (check go.mod).
 
-  Output: Write findings to ~/.claude/golang-workflow/research-findings.md
+  Output: Write findings to ./.claude/golang-workflow/research-findings.md
 ```
 
 ### Step 3: Synthesize Wave 1
@@ -219,9 +219,9 @@ After agents complete:
 ### Step 3.5: Pre-Wave-2 Validation (REQUIRED)
 
 Verify file separation before proceeding:
-1. Confirm `~/.claude/golang-workflow/architecture-impl.md` exists
-2. Confirm `~/.claude/golang-workflow/test-specs.md` exists
-3. Confirm `~/.claude/golang-workflow/research-findings.md` exists
+1. Confirm `./.claude/golang-workflow/architecture-impl.md` exists
+2. Confirm `./.claude/golang-workflow/test-specs.md` exists
+3. Confirm `./.claude/golang-workflow/research-findings.md` exists
 4. Verify test-specs.md contains NO code blocks (``` markers)
 
 **If files are not properly separated, return to Wave 1 and re-run the relevant agent.**
@@ -317,7 +317,7 @@ prompt: |
   - TESTS_PASS: All checks pass, include coverage percentage
   - TESTS_FAIL: [List specific failures with error output]
 
-  Output: Write results to ~/.claude/golang-workflow/test-results-stage-N.md
+  Output: Write results to ./.claude/golang-workflow/test-results-stage-N.md
 ```
 
 **Reviewer Agent:**
@@ -346,7 +346,7 @@ prompt: |
   - REQUEST_CHANGES: [List specific code issues to fix]
   - NEEDS_DISCUSSION: [Design concerns requiring user input]
 
-  Output: Write verdict to ~/.claude/golang-workflow/review-stage-N.md
+  Output: Write verdict to ./.claude/golang-workflow/review-stage-N.md
 ```
 
 **[HIGH COMPLEXITY ONLY] Reviewer Agent 2:**
@@ -373,7 +373,7 @@ prompt: |
   - REQUEST_CHANGES: [List specific design issues]
   - NEEDS_DISCUSSION: [Architectural concerns]
 
-  Output: Write verdict to ~/.claude/golang-workflow/review2-stage-N.md
+  Output: Write verdict to ./.claude/golang-workflow/review2-stage-N.md
 ```
 
 #### Processing Wave 2b Verdict
@@ -427,7 +427,7 @@ prompt: |
   - TESTS_PASS: All checks pass, include final coverage percentage
   - TESTS_FAIL: [List all failures with error output]
 
-  Output: Write to ~/.claude/golang-workflow/test-results-final.md
+  Output: Write to ./.claude/golang-workflow/test-results-final.md
 ```
 
 **Reviewer Agent:**
@@ -455,7 +455,7 @@ prompt: |
   - REQUEST_CHANGES: [Specific code issues - returns to relevant Wave 2 stage]
   - NEEDS_DISCUSSION: [Architectural concerns for user]
 
-  Output: Write to ~/.claude/golang-workflow/review-final.md
+  Output: Write to ./.claude/golang-workflow/review-final.md
 ```
 
 **[HIGH COMPLEXITY ONLY] Reviewer Agent 2:**
@@ -481,7 +481,7 @@ prompt: |
   - REQUEST_CHANGES: [Specific design issues]
   - NEEDS_DISCUSSION: [Architectural concerns]
 
-  Output: Write to ~/.claude/golang-workflow/review2-final.md
+  Output: Write to ./.claude/golang-workflow/review2-final.md
 ```
 
 **Optimizer Agent:**
@@ -499,7 +499,7 @@ prompt: |
   - Check for obvious performance issues
   - Concurrency analysis (goroutine leaks, race conditions)
 
-  Output: Write to ~/.claude/golang-workflow/optimization.md
+  Output: Write to ./.claude/golang-workflow/optimization.md
 ```
 
 ### Step 6: Process Final Verdict (BLOCKING)
