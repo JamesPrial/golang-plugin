@@ -113,6 +113,59 @@ Your report MUST conclude with one of these verdicts:
 2. [...]
 ```
 
+## Compilation Check Mode (Wave 2a.5)
+
+When invoked in compilation check mode, run ONLY these two commands:
+
+```bash
+go build ./...
+go vet ./...
+```
+
+This is a fast pre-flight check after parallel implementation + test writing. It catches signature mismatches, type errors, and import issues before the expensive full test suite.
+
+**Compilation Check Output:**
+
+Your report MUST conclude with one of these verdicts:
+
+**COMPILES** - Both commands succeed. Proceed to full Wave 2b quality gate.
+
+**COMPILE_FAIL** - One or more compilation errors. Include:
+- Full error output from `go build` and/or `go vet`
+- Each error classified as:
+  - `SIGNATURE_MISMATCH` - test expects different function signature than implementation
+  - `TYPE_MISMATCH` - test uses different types than implementation
+  - `IMPORT_ERROR` - missing dependency or import cycle
+  - `OTHER` - any other compilation error
+- Affected files and line numbers
+
+Do NOT run the full test suite. The orchestrator will route compile failures directly to selective retry.
+
+## TDD Red Phase Mode
+
+When invoked in TDD Red Phase (via `--tdd` flag), your goal is to verify that newly written tests FAIL before implementation exists. This proves the tests are meaningful — they actually test behavior rather than being tautological.
+
+Run ONLY:
+```bash
+go build ./...    # Check if tests compile (may fail if impl doesn't exist yet)
+go test -v ./...  # Run tests (expect failures)
+```
+
+**Red Phase Output:**
+
+Your report MUST conclude with one of these verdicts:
+
+**RED_VERIFIED** - Tests compile but fail as expected. Include:
+- Number of tests that exist
+- Number that fail (should be > 0)
+- Which tests fail and what they expect
+- This confirms the tests are meaningful
+
+**RED_PROBLEM** - Something unexpected. Include one of:
+- `TESTS_PASS_UNEXPECTEDLY` - Tests pass without implementation. These tests are tautological and need rewriting. List which tests pass and why they're trivial.
+- `COMPILE_FAIL` - Tests don't compile. May indicate spec/signature issues. List errors.
+- `NO_TESTS_FOUND` - No test files were created. Flag to orchestrator.
+
 ## Important Notes
 
 - Run tests in the correct package directory

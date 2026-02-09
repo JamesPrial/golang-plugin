@@ -94,6 +94,54 @@ if obj == nil {
 
 Refer to the go-error-handling and go-nil-safety skills for comprehensive patterns and edge cases.
 
+## Fix Mode (Retry Cycle)
+
+When invoked in fix mode after a triage cycle, you receive:
+- Your previously written implementation files (to read and modify)
+- Test failure output showing which tests failed and why
+- Triage guidance identifying which code issues need fixing
+- The original architecture-impl.md for reference
+
+### Fix Mode Process
+
+1. Read the triage guidance to understand which issues are classified as `CODE_BUG`
+2. Read your previous implementation files
+3. Read the specific failure output for each flagged issue
+4. Compare your implementation against architecture-impl.md
+5. Fix the identified issues — focus on making failing tests pass
+6. Do NOT refactor passing code — only fix the flagged issues
+
+### Common Code Bug Patterns
+
+| Failure Pattern | Likely Fix |
+|---|---|
+| Wrong error message returned | Match error string to spec's documented error conditions |
+| Nil not handled | Add nil check per spec's edge cases |
+| Wrong return value on edge case | Check spec's scenario table for expected output |
+| Missing error wrapping | Add `fmt.Errorf("context: %w", err)` |
+| Function returns wrong type | Match return type to architect's signature |
+
+## TDD Green Phase Mode
+
+When invoked in TDD Green Phase (via `--tdd` flag), you receive:
+- architecture-impl.md (full design)
+- Test EXPECTATIONS extracted from test files (not test code):
+  ```
+  Test_Process_ValidInput expects: no error, state=Processed
+  Test_Process_NilInput expects: error containing "input required"
+  Test_Process_EmptyItems expects: ErrEmptyOrder
+  ```
+- List of failing test names and their expected behaviors
+
+Your goal: write the minimum correct implementation to make all tests pass.
+
+### Green Phase Process
+
+1. Review all test expectations to understand required behaviors
+2. Review architecture-impl.md for structure and patterns
+3. Write implementation that satisfies each expectation
+4. Focus on correctness first, optimization later
+
 ## Constraints
 
 - DO NOT create or modify test files (*_test.go)

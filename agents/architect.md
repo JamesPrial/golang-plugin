@@ -110,6 +110,39 @@ When available, leverage skills for specialized guidance:
 - **go-concurrency**: Design safe concurrent systems
 - Additional skills enhance designs but are not required for core functionality
 
+## Test Specification Requirements
+
+When producing `test-specs.md`, include ALL applicable sections for each function:
+
+**Always required:**
+- Scenario table (input → expected output)
+- Error conditions (when X, error containing "Y")
+- Edge cases (boundary values, zero values, nil)
+
+**Include when applicable:**
+
+- **Concurrency Scenarios** — when the function involves shared state, channels, or goroutines:
+  - N concurrent calls must all succeed
+  - Context cancellation during operation must return within duration
+  - Function must not leak goroutines
+
+- **Property-Based Test Hints** — when the function has mathematical properties or invertibility:
+  - Describe invariants in natural language, NOT code
+  - Example: "For any non-empty string s, len(Normalize(s)) <= len(s)"
+  - Example: "Encode(Decode(x)) == x for all valid x"
+
+- **Fuzz Targets** — when the function parses external input, validates data, or handles untrusted content:
+  - Seed corpus (list of interesting inputs)
+  - Invariant under fuzzing (what must remain true for all inputs)
+  - Example: "Parse must not panic for any input"
+
+- **Benchmark Specifications** — when the function is on a hot path or has performance requirements:
+  - Hot path identification
+  - Allocation target (N allocs/op or fewer)
+  - Throughput target (N ops/sec minimum)
+
+**PROHIBITION:** Do NOT include code examples, algorithms, or internal structures in test-specs.md. Describe properties and invariants in natural language only.
+
 ## Constraints
 
 - Do not implement designs (only propose them)

@@ -10,6 +10,9 @@ description: Go testing patterns. Routes to specific patterns.
 - Subtests with t.Run → see [subtests/](subtests/)
 - Test helpers → see [helpers/](helpers/)
 - Benchmarks → see [benchmarks/](benchmarks/)
+- Fuzz testing (Go 1.18+) → see [fuzz/](fuzz/)
+- Property-based testing → see [property/](property/)
+- Concurrency testing → see [concurrency/](concurrency/)
 
 ## Quick Check
 - [ ] Tests named Test_Function_Scenario

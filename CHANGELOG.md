@@ -5,6 +5,32 @@ All notable changes to the golang-workflow plugin will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-08
+
+### Added
+- **Failure Triage Agent** (`agents/triage.md`) — classifies test failures as CODE_BUG, TEST_BUG, or CONTRACT_MISMATCH to enable selective retry
+- **TDD Mode** (`--tdd` flag on `/implement`) — true test-driven development with RED-GREEN-REFACTOR cycle: tests written first, verified to fail, then implementation fills them in
+- **Compilation Check** (Wave 2a.5) — fast `go build`/`go vet` pre-flight between parallel creation and full test suite, catches signature mismatches cheaply
+- **Selective Retry Protocol** — on failure, re-runs only the agent(s) that need fixing instead of both
+- **Test Writer Fix Mode** — test writer can now iterate on its own tests when triage identifies TEST_BUGs, while preserving isolation from implementation code
+- **Implementer Fix Mode** — implementer receives targeted fix guidance from triage instead of generic "try again"
+- **Richer Test Specifications** — architect now produces expanded test-specs.md with concurrency scenarios, property-based test hints, fuzz targets, and benchmark specifications
+- **Fuzz Testing Skill** (`skills/golang/testing/fuzz/SKILL.md`) — Go 1.18+ native fuzz testing patterns
+- **Property Testing Skill** (`skills/golang/testing/property/SKILL.md`) — testing/quick property-based testing
+- **Concurrency Testing Skill** (`skills/golang/testing/concurrency/SKILL.md`) — race detection, goroutine leak checks, context cancellation testing
+- **TDD Protocol Skill** (`skills/orchestration/agent-protocols/tdd-protocol.md`) — RED-GREEN-REFACTOR rules and test-expectation extraction
+- **Failure Triage Skill** (`skills/orchestration/agent-protocols/failure-triage.md`) — classification rules and selective retry protocol
+- **Triage-Aware Escalation** — retry tracking with smart escalation: same failure persisting → NEEDS_DISCUSSION, CONTRACT_MISMATCH → immediate escalation
+
+### Changed
+- `/implement` command rewritten with dual-mode support (Parallel default + TDD opt-in)
+- Quality gate protocol updated with triage-based selective retry replacing blunt "re-run both agents"
+- Implementer now receives test expectations (scenario tables + error conditions from spec) to reduce mismatches
+- Test writer skills expanded with fuzz, property, and concurrency testing references
+- Architect agent updated with richer test specification requirements
+- Test runner agent gains compilation check mode and TDD RED phase verification mode
+- Test-writer isolation skill updated with implementer awareness rules and fix mode isolation guarantees
+
 ## [1.4.0] - 2026-01-20
 
 ### Changed

@@ -77,3 +77,37 @@ Test Writer should receive specifications in this format:
 ```
 
 Note: NO code examples, NO algorithms, NO internal structures.
+
+## Implementer Awareness
+
+The implementer receives a **controlled subset** of test-specs.md alongside architecture-impl.md. This reduces mismatches without breaking isolation.
+
+### What the Implementer CAN See
+
+- Scenario tables (input → expected output)
+- Error conditions (when X, error contains "Y")
+- Edge cases (boundary condition → expected behavior)
+- Function signatures
+- Property invariants (in natural language)
+
+### What the Implementer CANNOT See
+
+- Test code (`*_test.go` file contents)
+- Test assertions or setup logic
+- Test helper implementations
+- Mock definitions
+- Benchmark implementation details
+
+### Why This Is Safe
+
+The implementer sees WHAT will be tested (behaviors, error messages, edge cases) but NOT HOW it will be tested (assertions, setup, helpers). This preserves the test-writer's independence while reducing the probability of arbitrary implementation choices that contradict the spec.
+
+The test-writer remains completely isolated — it never sees implementation code in any mode (initial write or fix mode).
+
+## Fix Mode Isolation
+
+When the test-writer is invoked in fix mode (during retry cycles), isolation is preserved:
+
+- Test-writer receives: its own test files, failure output, triage guidance, test-specs.md
+- Test-writer does NOT receive: implementation code, implementation file paths, implementation design
+- Error messages in failure output may reveal public API surface (function names, parameter counts) but not internal behavior — this is acceptable and unavoidable

@@ -12,6 +12,9 @@ skills:
   - go-table-tests
   - go-error-handling
   - go-nil-safety
+  - go-fuzz-testing
+  - go-property-testing
+  - go-concurrency-testing
 ---
 
 # Go Test Writer
@@ -134,6 +137,61 @@ Write all test files to their appropriate locations. For each test file created,
    - Integration tests that need real dependencies
    - Benchmarks needing performance baselines
 
+## Fix Mode (Retry Cycle)
+
+When invoked in fix mode after a triage cycle, you receive:
+- Your previously written test files (to read and modify)
+- Test failure output showing which tests failed and why
+- Triage guidance identifying which tests need fixing and the specific issues
+- The original test-specs.md for reference
+
+**Isolation is PRESERVED in fix mode.** You still do NOT receive implementation code. Error messages like `undefined: FunctionName` or `wrong number of arguments` tell you about the public API surface but not implementation details.
+
+### Fix Mode Process
+
+1. Read the triage guidance to understand which tests are classified as `TEST_BUG`
+2. Read your previous test files
+3. Read the specific failure output for each flagged test
+4. Compare your test assertions against test-specs.md
+5. Fix the identified issues while preserving all passing tests
+6. Do NOT rewrite tests that are passing — only fix the flagged ones
+
+### Common Test Bug Patterns
+
+| Failure Pattern | Likely Fix |
+|---|---|
+| Test asserts different error message than spec | Update assertion to match spec |
+| Test creates invalid setup state | Fix test fixture to match documented input |
+| Test expects wrong return type | Check spec signature, fix assertion |
+| Test missing required setup (nil context, etc.) | Add proper test setup per spec |
+| Compilation error: wrong function signature | Update test call to match spec signature |
+
+## Advanced Test Categories
+
+### Fuzz Tests (when spec provides fuzz targets) [Go 1.18+]
+
+Write fuzz tests when the test specification includes a "Fuzz Targets" section:
+- Create `Fuzz_[Function]` functions
+- Add seed corpus entries from the spec
+- Define invariants that must hold for all fuzz inputs
+- Focus on: no panics, consistent error handling, resource safety
+
+### Property-Based Tests (when spec provides property hints)
+
+Write property tests when the specification includes a "Property-Based Test Hints" section:
+- Use `testing/quick` for simple property checks
+- Define properties as functions that return bool
+- Test mathematical properties: commutativity, associativity, invertibility
+- Test invariants: output constraints, state consistency
+
+### Concurrency Tests (when spec provides concurrency scenarios)
+
+Write concurrency tests when the specification includes a "Concurrency Scenarios" section:
+- Use goroutine groups to test concurrent access
+- Test context cancellation with deadline-bounded contexts
+- Check for goroutine leaks using `runtime.NumGoroutine()` before/after
+- Always pair with `-race` flag (handled by test-runner)
+
 ## Constraints
 
 - DO NOT read implementation code before writing tests
@@ -186,4 +244,4 @@ func Test_ProcessOrder_Cases(t *testing.T) {
 }
 ```
 
-Refer to go-table-tests, go-error-handling, and go-nil-safety skills for comprehensive patterns.
+Refer to go-table-tests, go-error-handling, go-nil-safety, go-fuzz-testing, go-property-testing, and go-concurrency-testing skills for comprehensive patterns.

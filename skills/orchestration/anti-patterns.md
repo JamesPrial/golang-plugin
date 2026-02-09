@@ -54,6 +54,28 @@ description: Common orchestrator mistakes and context budget guidance
 | "Test Writer needs to see the implementation to write good tests..." | Tests verify SPECS, not implementation |
 | "The architect put everything in one file, I'll extract what I need..." | Architect MUST output separate files |
 
+### Retry Without Triage
+
+| Anti-Pattern | Correct Approach |
+|--------------|------------------|
+| "Tests failed, let me re-run both implementer and test-writer..." | Run triage agent FIRST to classify failures |
+| "I'll just send the error output to both agents..." | Triage determines WHO needs to fix WHAT |
+| "The test is probably wrong, let me just re-run the implementer..." | Don't guess — triage with evidence |
+
+### Skipping Compilation Check
+
+| Anti-Pattern | Correct Approach |
+|--------------|------------------|
+| "Let me run the full test suite right after Wave 2a..." | Run Wave 2a.5 compilation check first |
+| "Compilation check is just overhead..." | It saves running expensive tests on signature mismatches |
+
+### TDD Mode Violations
+
+| Anti-Pattern | Correct Approach |
+|--------------|------------------|
+| "Tests pass in RED phase, let me proceed anyway..." | Tests MUST fail in RED phase — passing means tautological |
+| "Let me send the test code to the implementer in GREEN phase..." | Send test EXPECTATIONS only (what tests expect, not how) |
+
 ### Complexity Underestimation
 
 | Anti-Pattern | Correct Approach |
