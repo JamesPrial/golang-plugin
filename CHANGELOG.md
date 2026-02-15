@@ -5,6 +5,13 @@ All notable changes to the golang-workflow plugin will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-02-15
+
+### Added
+- `/patch` command for lightweight bug fixes and refactors — lean 2-phase workflow (explore → patch+gate) reusing 6 existing agents with no architect, researcher, or optimizer overhead
+- Multi-stage support in `/patch` for patches spanning multiple dependent packages
+- Triage-based selective retry in `/patch` with 2-cycle budget (vs 3 for `/implement`)
+
 ## [2.0.0] - 2026-02-08
 
 ### Added

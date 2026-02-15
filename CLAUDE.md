@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the `golang-workflow` Claude Code plugin (v2.0.0), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks for Go development. Its key differentiator is TDD-inspired parallel agents with failure triage for intelligent retry.
+This is the `golang-workflow` Claude Code plugin (v2.0.1), which provides specialized agents, idiomatic Go patterns, and automated code quality hooks for Go development. Its key differentiator is TDD-inspired parallel agents with failure triage for intelligent retry.
 
 **Always proactively use your claude-code-plugins skill when working on or with plugins in this repository.**
 
@@ -13,7 +13,7 @@ This is the `golang-workflow` Claude Code plugin (v2.0.0), which provides specia
 ```
 .claude-plugin/plugin.json         # Plugin manifest
 agents/                            # Subagent definitions (9 agents)
-commands/                          # Slash commands (/implement)
+commands/                          # Slash commands (/implement, /patch)
 hooks/                             # Automated code quality hooks
 skills/golang/                     # Go knowledge base organized by topic
 skills/orchestration/              # Workflow protocols (quality gates, agent isolation, TDD, triage)
