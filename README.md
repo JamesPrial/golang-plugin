@@ -2,7 +2,7 @@
 
 **TDD-first parallel agents with intelligent failure triage for Claude Code**
 
-![Version](https://img.shields.io/badge/version-2.0.1-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![Go](https://img.shields.io/badge/Go-1.18+-00ADD8?logo=go&logoColor=white)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-Plugin-7C3AED)
 ![License](https://img.shields.io/badge/license-MIT-green)
