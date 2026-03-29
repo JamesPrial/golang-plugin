@@ -5,6 +5,13 @@ All notable changes to the golang-workflow plugin will be documented in this fil
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2026-03-29
+
+### Fixed
+- Pre-commit hook now checks for staged `.go` files before running golangci-lint — commits with only non-Go files (markdown, JSON, YAML, shell scripts) skip linting entirely
+- golangci-lint now targets only packages containing staged Go files instead of the entire repository
+- Added `.golangci.yml` configuration to exclude non-Go directories from linter analysis
+
 ## [2.1.0] - 2026-02-17
 
 ### Added

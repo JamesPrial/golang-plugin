@@ -1,6 +1,6 @@
 {
   "name": "golang-workflow",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Go development workflow with TDD-first parallel agents, failure triage, and automated code quality hooks",
   "author": {
     "name": "James Prial"
