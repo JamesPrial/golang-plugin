@@ -28,14 +28,24 @@ if [[ ! "$command" =~ git[[:space:]]+commit ]]; then
     exit 0
 fi
 
+# Check if any staged files are .go files
+staged_go_files=$(git diff --cached --name-only -- '*.go' 2>/dev/null || echo "")
+if [ -z "$staged_go_files" ]; then
+    # No Go files staged — skip linting
+    exit 0
+fi
+
 # Check if golangci-lint is available
 if ! command -v golangci-lint &> /dev/null; then
     echo "Warning: golangci-lint not found, skipping lint check" >&2
     exit 0
 fi
 
-# Run golangci-lint
-if ! output=$(golangci-lint run 2>&1); then
+# Collect unique directories containing staged Go files
+staged_dirs=$(echo "$staged_go_files" | xargs -I{} dirname {} | sort -u | sed 's|$|/...|')
+
+# Run golangci-lint only on packages with staged Go files
+if ! output=$(golangci-lint run $staged_dirs 2>&1); then
     echo "golangci-lint found issues:" >&2
     echo "$output" >&2
     echo "" >&2

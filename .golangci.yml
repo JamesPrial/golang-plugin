@@ -1,0 +1,13 @@
+run:
+  timeout: 3m
+  # Only lint directories that contain Go source files.
+  # Non-Go directories (skills, agents, commands, hooks, docs) are
+  # excluded so golangci-lint never flags markdown, JSON, YAML, or
+  # shell scripts.
+  skip-dirs:
+    - agents
+    - commands
+    - hooks
+    - skills
+    - \.claude
+    - \.claude-plugin
